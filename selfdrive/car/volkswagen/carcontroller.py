@@ -203,8 +203,8 @@ class CarController(CarControllerBase):
               apply_steer -= (1, -1)[apply_steer < 0]
               self.hca_frame_same_torque = 0
           else:
-          self.hca_frame_same_torque = 0
-          hca_enabled = abs(apply_steer) > 0
+            self.hca_frame_same_torque = 0
+            hca_enabled = abs(apply_steer) > 0
         else:
           hca_enabled = False
           apply_steer = 0
