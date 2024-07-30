@@ -256,10 +256,10 @@ class CarController(CarControllerBase):
       if self.CP.flags & VolkswagenFlags.MEB:
         sound_alert = 0
         if hud_control.visualAlert in (VisualAlert.steerRequired, VisualAlert.ldw):
-        hud_alert = self.CCP.LDW_MESSAGES["laneAssistTakeOverUrgent"]
-        sound_alert = 1
-      can_sends.append(self.CCS.create_lka_hud_control(self.packer_pt, CANBUS.pt, CS.ldw_stock_values, CC.latActive,
-                                                       CS.out.steeringPressed, hud_alert, hud_control, sound_alert))
+          hud_alert = self.CCP.LDW_MESSAGES["laneAssistTakeOverUrgent"]
+          sound_alert = 1
+        can_sends.append(self.CCS.create_lka_hud_control(self.packer_pt, CANBUS.pt, CS.ldw_stock_values, CC.latActive,
+                                                         CS.out.steeringPressed, hud_alert, hud_control, sound_alert))
 
       else:
         if hud_control.visualAlert in (VisualAlert.steerRequired, VisualAlert.ldw):
