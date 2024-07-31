@@ -280,7 +280,7 @@ class CarController(CarControllerBase):
         if hud_control.leadVisible and self.frame * DT_CTRL > 1.0:  # Don't display lead until we know the scaling factor
           lead_distance = 512
         set_speed = hud_control.setSpeed * CV.MS_TO_KPH
-        acc_hud_status = self.CCS.acc_hud_status_value(CS.out.cruiseState.available, CS.out.accFaulted, CC.enabled, CS.out.cruiseState.enabled, CC.cruiseControl.override)
+        acc_hud_status = self.CCS.acc_hud_status_value(CS.out.cruiseState.available, CS.out.accFaulted, CC.enabled, CC.cruiseControl.override)
         can_sends.append(self.CCS.create_acc_hud_control(self.packer_pt, CANBUS.pt, acc_hud_status, set_speed, t_gap,
                                                          lead_distance, hud_control.leadDistanceBars, self.long_heartbeat,
                                                          CS.esp_hold_confirmation, CS.meb_acc_01_values, CS.distance_stock_values))
