@@ -269,6 +269,9 @@ class CarState(CarStateBase):
 
   def update_meb(self, pt_cp, cam_cp, ext_cp, trans_type):
     ret = car.CarState.new_message()
+
+    self.prev_mads_enabled = self.mads_enabled
+    
     # Update vehicle speed and acceleration from ABS wheel speeds.
     ret.wheelSpeeds = self.get_wheel_speeds(
       pt_cp.vl["MEB_ESP_01"]["VL_Radgeschw"],
