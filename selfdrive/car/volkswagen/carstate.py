@@ -292,6 +292,8 @@ class CarState(CarStateBase):
 
     # VW Emergency Assist status tracking and mitigation
     self.eps_stock_values = pt_cp.vl["LH_EPS_03"]
+    #if self.CP.flags & VolkswagenFlags.STOCK_HCA_PRESENT:
+    #  ret.carFaultedNonCritical = bool(cam_cp.vl["HCA_01"]["EA_Ruckfreigabe"]) or cam_cp.vl["HCA_01"]["EA_ACC_Sollstatus"] > 0
 
     # Update gas, brakes, and gearshift.
     # accel pressure on meb eps 03 has a really low frequency
@@ -299,8 +301,8 @@ class CarState(CarStateBase):
     ret.gas = pt_cp.vl["MEB_ESP_03"]["Accelerator_Pressure"]
     ret.brakePressed = bool(pt_cp.vl["Motor_14"]["MO_Fahrer_bremst"])
     ret.brake = pt_cp.vl["MEB_ESP_01"]["Brake_Pressure"] # this is break not from user
-    #brake_light = bool(pt_cp.vl["MEB_Light_01"]["Brake_Light"])
-    #ret.regenBraking = brake_light and not ret.brakePressed and not ret.standstill
+    ret.brakeLightsDEPRECATED = bool(pt_cp.vl["MEB_Light_01"]["Brake_Light"])
+    #ret.regenBraking = 
     #ret.parkingBrake = bool(pt_cp.vl["Kombi_01"]["KBI_Handbremse"])  # FIXME: need to include an EPB check as well
 
     # Update gear and/or clutch position data.
@@ -328,24 +330,34 @@ class CarState(CarStateBase):
     self.meb_acc_01_values = cam_cp.vl["MEB_ACC_01"]
     self.meb_acc_02_values = cam_cp.vl["MEB_ACC_02"]
 
-    ret.stockFcw = False
-    ret.stockAeb = False
+    if not self.CP.spFlags & VolkswagenFlagsSP.SP_CC_ONLY_NO_RADAR:
+      ret.stockFcw = False
+      ret.stockAeb = False
 
-    self.esp_hold_confirmation = bool(pt_cp.vl["MEB_ESP_05"]["ESP_Hold"])
-
-    ret.accFaulted = pt_cp.vl["MEB_Motor_01"]["TSK_Status"] in (6, 7)
-    self.acc_type = cam_cp.vl["MEB_ACC_02"]["ACC_Typ"]
+    # Update ACC radar status.
+    if not self.CP.spFlags & VolkswagenFlagsSP.SP_CC_ONLY_NO_RADAR or self.CP.spFlags & VolkswagenFlagsSP.SP_CC_ONLY:
+      _acc_type = 0 if self.CP.spFlags & VolkswagenFlagsSP.SP_CC_ONLY else cam_cp.vl["MEB_ACC_02"]["ACC_Typ"]
+      self.acc_type = _acc_type
 
     ret.cruiseState.available = pt_cp.vl["MEB_Motor_01"]["TSK_Status"] in (2, 3, 4, 5)
     ret.cruiseState.enabled   = pt_cp.vl["MEB_Motor_01"]["TSK_Status"] in (3, 4, 5)
 
-    if self.CP.openpilotLongitudinalControl:
-      ret.cruiseState.standstill = False
-      ret.cruiseState.nonAdaptive = False
-
-    else:
-      ret.cruiseState.standstill  = self.esp_hold_confirmation
+    if self.CP.pcmCruise and not self.CP.spFlags & VolkswagenFlagsSP.SP_CC_ONLY_NO_RADAR:
+      # Cruise Control mode; check for distance UI setting from the radar.
+      # ECM does not manage this, so do not need to check for openpilot longitudinal
       ret.cruiseState.nonAdaptive = bool(cam_cp.vl["MEB_ACC_01"]["ACC_Limiter_Mode"])
+    else:
+      # Speed limiter mode; ECM faults if we command ACC while not pcmCruise
+      ret.cruiseState.nonAdaptive = bool(cam_cp.vl["MEB_ACC_01"]["ACC_Limiter_Mode"])
+
+    ret.accFaulted = pt_cp.vl["MEB_Motor_01"]["TSK_Status"] in (6, 7)
+
+    self.esp_hold_confirmation = bool(pt_cp.vl["MEB_ESP_05"]["ESP_Hold"])
+    ret.cruiseState.standstill = self.CP.pcmCruise and self.esp_hold_confirmation
+
+    # Update ACC setpoint. When the setpoint is zero or there's an error, the
+    # radar sends a set-speed of ~90.69 m/s / 203mph.
+    if self.CP.pcmCruise and not self.CP.spFlags & VolkswagenFlagsSP.SP_CC_ONLY_NO_RADAR:
       ret.cruiseState.speed = int(round(cam_cp.vl["MEB_ACC_01"]["ACC_Wunschgeschw_02"])) * CV.KPH_TO_MS
       if ret.cruiseState.speed > 50: # settable maximum 180km/h
         ret.cruiseState.speed = 0
@@ -353,8 +365,8 @@ class CarState(CarStateBase):
     self.distance_stock_values = cam_cp.vl["MEB_Distance_01"]
 
     # Update button states for turn signals and ACC controls, capture all ACC button state/config for passthrough
-    ret.leftBlinker = bool(pt_cp.vl["Blinkmodi_02"]["BM_links"])
-    ret.rightBlinker = bool(pt_cp.vl["Blinkmodi_02"]["BM_rechts"])
+    ret.leftBlinker = ret.leftBlinkerOn = bool(pt_cp.vl["Blinkmodi_02"]["BM_links"])
+    ret.rightBlinker = ret.rightBlinkerOn = bool(pt_cp.vl["Blinkmodi_02"]["BM_rechts"])
     ret.buttonEvents = self.create_button_events(pt_cp, self.CCP.BUTTONS)
     self.gra_stock_values = pt_cp.vl["GRA_ACC_01"]
 
