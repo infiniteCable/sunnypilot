@@ -234,10 +234,13 @@ class CarController(CarControllerBase):
       starting = actuators.longControlState == LongCtrlState.pid and (CS.esp_hold_confirmation or CS.out.vEgo < self.CP.vEgoStopping)
 
       if self.CP.flags & VolkswagenFlags.MEB:
+        
         if CC.longActive:
           self.long_enabling = False
-        if CS.out.buttonEvents in [car.CarState.ButtonEvent.Type.setCruise, car.CarState.ButtonEvent.Type.resumeCruise]: #and not CC.longActive: #and not CC.cruiseControl.override:
-          self.long_enabling = True
+        for be in CS.out.buttonEvents:
+          if be.type in (ButtonType.resumeCruise, ButtonType.setCruise) and be.pressed and not CC.longActive: #and not CC.cruiseControl.override:
+            self.long_enabling = True
+            
         just_disabled = True if self.long_active_prev and not CC.longActive else False
         self.long_active_prev = CC.longActive
         current_speed = CS.out.vEgo * CV.MS_TO_KPH
