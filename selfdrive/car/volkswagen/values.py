@@ -92,6 +92,7 @@ class CarControllerParams:
       self.ANGLE_MAX                       = 360   # HCA_03 maximum angle
       self.ANGLE_RATE_LIMIT_UP             = AngleRateLimit(speed_bp=[0., 5., 15.], angle_v=[10., 5.0, 0.6])
       self.ANGLE_RATE_LIMIT_DOWN           = AngleRateLimit(speed_bp=[0., 5., 15.], angle_v=[10., 7.0, 0.8])
+      self.BTN_STEP                        = 3
 
       self.shifter_values    = can_define.dv["Getriebe_11"]["GE_Fahrstufe"]
       self.hca_status_values = can_define.dv["MEB_EPS_01"]["LatCon_HCA_Status"]
