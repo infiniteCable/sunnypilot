@@ -235,11 +235,11 @@ class CarController(CarControllerBase):
 
       if self.CP.flags & VolkswagenFlags.MEB:
         
-        if CC.longActive:
-          self.long_enabling = False
-        for be in CS.out.buttonEvents:
-          if be.type in (ButtonType.resumeCruise, ButtonType.setCruise) and be.pressed and not CC.longActive: #and not CC.cruiseControl.override:
-            self.long_enabling = True
+        #if CC.longActive:
+        #  self.long_enabling = False
+        #for be in CS.out.buttonEvents:
+        #  if be.type in (ButtonType.resumeCruise, ButtonType.setCruise) and be.pressed and not CC.longActive: #and not CC.cruiseControl.override:
+        #    self.long_enabling = True
             
         just_disabled = True if self.long_active_prev and not CC.longActive else False
         self.long_active_prev = CC.longActive
