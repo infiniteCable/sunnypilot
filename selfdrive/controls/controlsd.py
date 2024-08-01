@@ -582,7 +582,7 @@ class Controls:
 
     # Check if openpilot is engaged and actuators are enabled
     self.enabled = self.state in ENABLED_STATES
-    self.enabled_long = self.enabled #and CS.cruiseState.enabled
+    self.enabled_long = self.enabled and CS.cruiseState.enabled
     self.active = self.state in ACTIVE_STATES
     if self.active:
       self.current_alert_types.append(ET.WARNING)
